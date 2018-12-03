@@ -88,6 +88,73 @@ dt_out <- lapply(listIndustries, function(x){
   #   theme(axis.text.x = element_text(size=8),
   #         axis.text.y = element_text(size=8))
   
+  library(highcharter)
+  
+  data(mpg, package = "ggplot2")
+  setDT(mpg)
+  hchart(mpg, "point", hcaes(displ, hwy, group = drv), regression = TRUE) %>% 
+    hc_colors(c("#d35400", "#2980b9", "#2ecc71")) %>% 
+    hc_add_dependency("plugins/highcharts-regression.js")
+  
+  title_txt <- paste0("Labor Force - ",names(choiceVec)[choiceVec == input$industry], " Industry Correlation\n")
+  hchart(df_combined_cast, 'point', hcaes(x = 'C20', y = 'C30'), backgroundColor = "transparent") %>%
+    hc_title(text = title_txt) %>%
+    hc_xAxis(title = list(text = "Date")) %>%
+    hc_yAxis(title = list(text = "Revenue ($ million)")) %>%
+    hc_legend(labelFormatter = JS("function () {
+                                  switch (this.name) {
+                                  case '10':
+                                  val = 'Original';
+                                  break;
+                                  case '20':
+                                  val = 'Seasonal';
+                                  break;
+                                  case '30':
+                                  val = 'Trend';
+                                  }
+                                  return val;
+}"))%>%
+      hc_tooltip(shared = TRUE, formatter = JS("function () {
+                                               var d = new Date(this.x)
+                                               var month = new Array(12);
+                                               month[0] = 'January';
+                                               month[1] = 'February';
+                                               month[2] = 'March';
+                                               month[3] = 'April';
+                                               month[4] = 'May';
+                                               month[5] = 'June';
+                                               month[6] = 'July';
+                                               month[7] = 'August';
+                                               month[8] = 'September';
+                                               month[9] = 'October';
+                                               month[10] = 'November';
+                                               month[11] = 'December';
+                                               var n = month[d.getUTCMonth()];
+                                               var o = new Date(this.x).getUTCFullYear()
+                                               
+                                               function seriesNameLoookup(caseval) {
+                                               switch (caseval) {
+                                               case '10':
+                                               val = 'Original';
+                                               break;
+                                               case '20':
+                                               val = 'Seasonal';
+                                               break;
+                                               case '30':
+                                               val = 'Trend';
+                                               }
+                                               return val;
+                                               }
+                                               
+                                               arrLen = this.points.length;
+                                               text = '<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\" />';
+                                               text = text + '<b>' + n + ' '+ o  + '</b><br>'
+                                               for (i = 0; i < arrLen; i++) {
+                                               text += '<span style=\"color:'+ this.points[i].point.color +'\"><p>\u25CF <p></span>' + seriesNameLoookup(this.points[i].point.series.name) + ': <b>' + this.points[i].y + '</b><br>'
+                                               }
+                                               return text;
+      }"))%>%
+      hc_add_theme(hc_theme_custom)
   
   linear_model <- lm(C20~C30, data = df_combined_cast )
   df_combined_cast$C20Pred <- predict(linear_model, df_combined_cast[,3])
