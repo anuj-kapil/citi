@@ -52,8 +52,8 @@ choiceVec <- c("Food" = 41,
                "Cafes & Restaurants" = 46)
 
 choiceVec2 <- c("Original" = 10,
-               "Seasonal" = 20,
-               "Trend" = 30)
+                "Seasonal" = 20,
+                "Trend" = 30)
 
 theme <- list(colors = c("#0266C8", "#F90101", "#F2B50F", 
                          "#00933B"), 
@@ -206,85 +206,88 @@ server <- function(input, output, session) {
     dt <- reactive_data_forecast()
     dt <- dt[IND_R == input$industry1 & TSEST == input$seriesType]
     dt <- tail(dt[order(obsTime)], 5)
-    namesList <-  c("obsTime", "C20", "C20_Adjusted")
-    namesListDisp <-  c("Date","Actual Revenue($M)", "Predicted Revenue($M)", "Error(%)")
+    namesList <-  c("obsTime", "C20","C20_ActualGrowth" , "C20_Adjusted","C20_AdjustedGrowth", "C20_AdjErr", "C20Pred", "C20PredGrowth", "C20_PredErr", "C20_F", "C20_FGrowth", "C20_FErr")
+    namesListDisp <-  c("Date","Actual Revenue($M)", "Actual Growth(%)", "Pred.Revenue($M)","Pred.Growth(%)", "Pred.Err(%)", "Linear.Rev($M)","Linear.Growth(%)", "Linear.Err(%)", "Forecast.Rev($M)","Forecast.Growth(%)", "Forecast.Err(%)")
     dt <- dt[,namesList, with = FALSE]
     setorderv(dt,"obsTime")
     lastrow <- nrow(dt)
     if(lastrow > 0){
-    predictedgrowth <- (dt[lastrow, C20_Adjusted] - dt[lastrow-1, C20_Adjusted])*100/dt[lastrow-1, C20_Adjusted]
-    actualgrowth <- (dt[lastrow-1, C20] - dt[lastrow-2, C20])*100/dt[lastrow-2, C20]
-    predictedgrowthprior <- (dt[lastrow-1, C20_Adjusted] - dt[lastrow-2, C20_Adjusted])*100/dt[lastrow-2, C20_Adjusted]
-    upcolor = "green"
-    downcolor = "red"
-    upicon = icon("arrow-circle-up")
-    downicon = icon("arrow-circle-down")
-    
-    dispcolor1 <- upcolor
-    dispicon1 <- upicon
-    
-    dispcolor2 <- upcolor
-    dispicon2 <- upicon
-    
-    dispcolor3 <- upcolor
-    dispicon3 <- upicon
-    
-    if(actualgrowth<0)
-    {
-      dispcolor1 <- downcolor
-      dispicon1 <- downicon
-    } else {
+      predictedgrowth <- dt[lastrow, C20_AdjustedGrowth]
+      actualgrowth <- dt[lastrow-1, C20_ActualGrowth]
+      predictedgrowthprior <- dt[lastrow-1, C20_AdjustedGrowth]
+      upcolor = "green"
+      downcolor = "red"
+      upicon = icon("arrow-circle-up")
+      downicon = icon("arrow-circle-down")
+      
       dispcolor1 <- upcolor
       dispicon1 <- upicon
-    }
-    if(predictedgrowth<0)
-    {
-      dispcolor2 <- downcolor
-      dispicon2 <- downicon
-    } else {
+      
       dispcolor2 <- upcolor
       dispicon2 <- upicon
-    }
-    
-    if(predictedgrowthprior<0)
-    {
-      dispcolor3 <- downcolor
-      dispicon3 <- downicon
-    } else {
+      
       dispcolor3 <- upcolor
       dispicon3 <- upicon
-    }
-    
-    predictedgrowth <- abs(predictedgrowth)
-    actualgrowth <- abs(actualgrowth)
-    predictedgrowthprior <- abs(predictedgrowthprior)
-    disppredictedgrowth <- paste0(formatC(predictedgrowth, big.mark = ",", format = "f", digits = 2), "%")
-    dispactualgrowth <- paste0(formatC(actualgrowth, big.mark = ",", format = "f", digits = 2), "%")
-    disppredictedgrowthprior <- paste0(formatC(predictedgrowthprior, big.mark = ",", format = "f", digits = 2), "%")
-    
-    dispmonth1 <- month.abb[month(date(max(dt$obsTime))%m-% months(1))]
-    dispyear1 <- year(date(max(dt$obsTime))%m-% months(1))
-    
-    dispmonth2 <- month.abb[month(max(dt$obsTime))]
-    dispyear2 <- year(max(dt$obsTime))
-    
-    dispText1 <- paste0("Actual Revenue Growth - ", dispmonth1, "'", dispyear1)
-    dispText2 <- paste0("Predicted Revenue Growth - ", dispmonth2, "'", dispyear2)
-    dispText3 <- paste0("Predicted Revenue Growth - ", dispmonth1, "'", dispyear1)
-    
-    output$infoBox1 <- renderInfoBox({
-      infoBox(dispText1, dispactualgrowth, icon = dispicon1, fill = TRUE, color = dispcolor1)
-    })
-    output$infoBox2 <- renderInfoBox({
-      infoBox(dispText2, disppredictedgrowth , icon = dispicon2, fill = TRUE, color = dispcolor2)
-    })
-    output$infoBox3 <- renderInfoBox({
-      infoBox(dispText3, disppredictedgrowthprior , icon = dispicon3, fill = TRUE, color = dispcolor3)
-    })
-    dt[, errorrate := (abs(C20_Adjusted-C20)*100)/C20]
-    dt[, errorrate := formatC(errorrate, big.mark = ",", format = "f", digits = 2)]
-    dt[, C20 := formatC(C20, big.mark = ",", format = "f", digits = 2)]
-    dt[, C20_Adjusted := formatC(C20_Adjusted, big.mark = ",", format = "f", digits = 2)]
+      
+      if(actualgrowth<0)
+      {
+        dispcolor1 <- downcolor
+        dispicon1 <- downicon
+      } else {
+        dispcolor1 <- upcolor
+        dispicon1 <- upicon
+      }
+      if(predictedgrowth<0)
+      {
+        dispcolor2 <- downcolor
+        dispicon2 <- downicon
+      } else {
+        dispcolor2 <- upcolor
+        dispicon2 <- upicon
+      }
+      
+      if(predictedgrowthprior<0)
+      {
+        dispcolor3 <- downcolor
+        dispicon3 <- downicon
+      } else {
+        dispcolor3 <- upcolor
+        dispicon3 <- upicon
+      }
+      
+      predictedgrowth <- abs(predictedgrowth)
+      actualgrowth <- abs(actualgrowth)
+      predictedgrowthprior <- abs(predictedgrowthprior)
+      disppredictedgrowth <- paste0(formatC(predictedgrowth, big.mark = ",", format = "f", digits = 2), "%")
+      dispactualgrowth <- paste0(formatC(actualgrowth, big.mark = ",", format = "f", digits = 2), "%")
+      disppredictedgrowthprior <- paste0(formatC(predictedgrowthprior, big.mark = ",", format = "f", digits = 2), "%")
+      
+      dispmonth1 <- month.abb[month(date(max(dt$obsTime))%m-% months(1))]
+      dispyear1 <- year(date(max(dt$obsTime))%m-% months(1))
+      
+      dispmonth2 <- month.abb[month(max(dt$obsTime))]
+      dispyear2 <- year(max(dt$obsTime))
+      
+      dispText1 <- paste0("Actual Revenue Growth - ", dispmonth1, "'", dispyear1)
+      dispText2 <- paste0("Predicted Revenue Growth - ", dispmonth2, "'", dispyear2)
+      dispText3 <- paste0("Predicted Revenue Growth - ", dispmonth1, "'", dispyear1)
+      
+      output$infoBox1 <- renderInfoBox({
+        infoBox(dispText1, dispactualgrowth, icon = dispicon1, fill = TRUE, color = dispcolor1)
+      })
+      output$infoBox2 <- renderInfoBox({
+        infoBox(dispText2, disppredictedgrowth , icon = dispicon2, fill = TRUE, color = dispcolor2)
+      })
+      output$infoBox3 <- renderInfoBox({
+        infoBox(dispText3, disppredictedgrowthprior , icon = dispicon3, fill = TRUE, color = dispcolor3)
+      })
+      #dt[, errorrate := (abs(C20_Adjusted-C20)*100)/C20]
+      #namesList <-  c("obsTime", "C20","C20_ActualGrowth" , "C20_Adjusted","C20_AdjustedGrowth", "C20_AdjErr", "C20Pred", "C20PredGrowth", "C20_PredErr", "C20_F", "C20_FGrowth", "C20_FErr")
+      cols <- names(dt)[names(dt) != 'obsTime']
+      dt[ , (cols) := lapply(.SD, function(x){formatC(x, big.mark = ",", format = "f", digits = 2)}, -1), .SDcols = cols]
+      # dt[, errorrate := formatC(errorrate, big.mark = ",", format = "f", digits = 2)]
+      # dt[, C20 := formatC(C20, big.mark = ",", format = "f", digits = 2)]
+      # dt[, C20_Adjusted := formatC(C20_Adjusted, big.mark = ",", format = "f", digits = 2)]
     }
     else{
       output$infoBox1 <- renderInfoBox({
@@ -374,7 +377,7 @@ server <- function(input, output, session) {
                                                return text;
       }"))%>%
       hc_add_theme(hc_theme_custom)
-  })
+    })
   
-}
+  }
 shinyApp(ui, server)
