@@ -1,5 +1,5 @@
 ##### Installing Packages ###########
-#install.packages('rsdmx')
+install.packages('rsdmx')
 
 ##### Load Packages ###########
 library(rsdmx)
@@ -42,9 +42,9 @@ system.time({
 })
 setDT(df)
 
-
-dt_out <- lapply(listIndustries, function(x){
-  dt <- df[IND_R == x & TSEST == 20, 7:8]
+dt_out <- lapply(c(20,30), function(y){
+  dt_inner <- lapply(listIndustries, function(x){
+  dt <- df[IND_R == x & TSEST == y, 7:8]
   dt[,IND_R := 20]
   dt[,obsTime := as.Date(paste(obsTime, "01", sep = "-"))]
   setcolorder(dt, c("IND_R", "obsTime", "obsValue"))
@@ -84,6 +84,20 @@ dt_out <- lapply(listIndustries, function(x){
   #   theme(axis.text.x = element_text(size=8),
   #         axis.text.y = element_text(size=8))
   
+  # modlss <- loess(C20 ~ C30, data = df_combined_cast)
+  # fit <- arrange(augment(modlss), C30)
+  # 
+  # library(highcharter)
+  # highchart() %>% 
+  #   hc_add_series(df_combined_cast, type = "scatter",
+  #                 hcaes(x = C30, y = C20)) %>%
+  #   hc_add_series(fit, type = "spline", hcaes(x = C30, y = .fitted),
+  #                 name = "Fit", id = "fit") %>% 
+  #   hc_add_series(fit, type = "arearange",
+  #                 hcaes(x = C30, low = .fitted - 2*.se.fit,
+  #                       high = .fitted + 2*.se.fit),
+  #                 linkedTo = "fit")%>%
+  #   hc_add_theme(hc_theme_custom)
   
   linear_model <- lm(C20~C30, data = df_combined_cast )
   df_combined_cast$C20Pred <- predict(linear_model, df_combined_cast[,3])
@@ -138,8 +152,16 @@ dt_out <- lapply(listIndustries, function(x){
   dt_new[(rowNum-4):rowNum,C20_F_80_L := fcast$lower[1,1]]
   dt_new[(rowNum-4):rowNum,C20_F_95_U := fcast$upper[1,2]]
   dt_new[(rowNum-4):rowNum,C20_F_95_L := fcast$lower[1,2]]
+  dt_new[, C20_Adjusted:= as.numeric(C20_Adjusted)]
+  dt_new[,C20_AdjustedGrowth:= round(((C20_Adjusted-shift(C20_Adjusted, type = "lag", n = 1))/shift(C20_Adjusted, type = "lag", n = 1))*100,2)]
+  dt_new[,C20_ActualGrowth:= round(((C20-shift(C20, type = "lag", n = 1))/shift(C20, type = "lag", n = 1))*100,2)]
+  dt_new[,C20_FGrowth:= round(((C20_F-shift(C20_F, type = "lag", n = 1))/shift(C20_F, type = "lag", n = 1))*100,2)]
+  dt_new[,C20_PredErr:= round((abs(C20Pred - C20)*100)/C20,2)]
+  dt_new[,C20_AdjErr:= round((abs(C20_Adjusted - C20)*100)/C20,2)]
+  dt_new[,C20_FErr:= round((abs(C20_F - C20)*100)/C20,2)]
+  
   dt_new[, IND_R := x]
-  dt_new[, TSEST := 20]
+  dt_new[, TSEST := y]
   return(dt_new)
   # d <- max(df_combined_cast$obsTime) %m+% months(1)
   # 
@@ -166,9 +188,16 @@ dt_out <- lapply(listIndustries, function(x){
   # dt_new <- rbindlist(list(df_combined_cast, dt_extra))
   
 })
+  dt_inner <- rbindlist(dt_inner)
+  return(dt_inner)
+})
+# library(highcharter)
+# highchart() %>% 
+#   hc_chart(type = "pie" ) %>% 
+#   hc_add_series_labels_values(labels = c('A', ''), values = c(98, 2), color = c('red', 'black'), size = '100%', innerSize = "60%", showInLegend = T)
 
 dt_out <- rbindlist(dt_out)
-setwd("/Users/anuj/Documents/UTS/Citi")
+setwd("D:/Rio/ABS")
 fwrite(dt_out, 'RT_Monthly_Forecast.csv', sep = ",")
 # mape <- mean(abs((df_combined_cast$C20Pred - df_combined_cast$C20))/df_combined_cast$C20, na.rm = T)
 # 
