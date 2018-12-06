@@ -7,7 +7,8 @@
 #    http://shiny.rstudio.com/
 #
 
-list.of.packages <- c("devtools"
+list.of.packages <- c("irlba"
+                      ,"devtools"
                       ,"shinydashboard"
                       ,"shiny"
                       ,"dashboardthemes"
@@ -15,6 +16,7 @@ list.of.packages <- c("devtools"
                       ,"httr"
                       ,"ggplot2"
                       ,"rsdmx"
+                      ,"rlang"
                       ,"psych"
                       ,"reshape2"
                       ,"dplyr"
@@ -22,7 +24,7 @@ list.of.packages <- c("devtools"
                       ,"highcharter"
                       ,"lubridate")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-if(length(new.packages)) install.packages(new.packages)
+if(length(new.packages)) install.packages(new.packages, dependencies = T)
 
 library(devtools)
 library(shinydashboard)
@@ -30,6 +32,7 @@ library(shiny)
 library(dashboardthemes)
 library(data.table)
 library(httr)
+library(rlang)
 library(ggplot2)
 library(rsdmx)
 library(psych)
@@ -181,11 +184,11 @@ ui <- dashboardPage(header, sidebar, body)
 
 
 server <- function(input, output, session) {
-  setwd("/Users/anuj/Documents/UTS/Citi")
+  #setwd("/Users/anuj/Documents/UTS/Citi")
   reactive_data <- reactiveFileReader(
     intervalMillis = 1000000,
     session = session,
-    filePath = "RT_Monthly.csv",
+    filePath = "https://raw.githubusercontent.com/anuj-kapil/citi/master/data/RT_Monthly.csv",
     readFunc = function(filePath){
       fread(filePath, sep = ",")
     }
@@ -194,7 +197,7 @@ server <- function(input, output, session) {
   reactive_data_forecast <- reactiveFileReader(
     intervalMillis = 1000000,
     session = session,
-    filePath = "RT_Monthly_Forecast.csv",
+    filePath = "https://raw.githubusercontent.com/anuj-kapil/citi/master/data/RT_Monthly_Forecast.csv",
     readFunc = function(filePath){
       fread(filePath, sep = ",")
     }
