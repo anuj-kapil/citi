@@ -355,7 +355,7 @@ server <- function(input, output, session) {
     dt_core <- round(dt_core*100,2)
     #dt_core <- formatC(dt_core, big.mark = ",", format = "f", digits = 2)
     output$infoBox4 <- renderInfoBox({
-      infoBox("Corr(%)", dt_core[1,2] , icon = icon("arrow-circle-up"), fill = TRUE, color = "yellow")
+      infoBox("Corr(%)", dt_core[1,2] , icon = icon("braille"), fill = TRUE, color = "yellow")
     })
     # Total 98.86%
     # 41 98.53%
@@ -367,11 +367,11 @@ server <- function(input, output, session) {
     
     # Visually fit a linear regression
     
-    
+    title_txt <- paste0("Industry - ",names(choiceVec)[choiceVec == input$industry]," (",names(choiceVec2)[choiceVec2 == input$seriesType1], ")\n")
     ggplot(plotData,aes(x=C20, y=C30))+
       geom_point(color = '#60636a')+
       geom_smooth(method = "lm", color = 'Orange')+
-      labs(title="Linear Regression\n", size = 15)+
+      labs(title=title_txt, size = 15)+
       theme(panel.background = element_blank(), axis.line = element_line(colour = "grey"), plot.title = element_text(hjust = 0.5))+
       scale_x_continuous(name="Retail Trade", labels = scales::comma)+
       scale_y_continuous(name="Labour Force", labels = scales::comma)+
@@ -393,8 +393,9 @@ server <- function(input, output, session) {
     dt_core <- round(dt_core*100,2)
     #dt_core <- formatC(dt_core, big.mark = ",", format = "f", digits = 2)
     output$infoBox5 <- renderInfoBox({
-      infoBox("Corr(%)", dt_core[1,2] , icon = icon("arrow-circle-up"), fill = TRUE, color = "yellow")
+      infoBox("Corr(%)", dt_core[1,2] , icon = icon("braille"), fill = TRUE, color = "yellow")
     })
+    
     # Total 98.86%
     # 41 98.53%
     # 42 98.61%
@@ -405,11 +406,11 @@ server <- function(input, output, session) {
     
     # Visually fit a linear regression
     
-    
+    title_txt <- paste0("Industry - ",names(choiceVec)[choiceVec == input$industry]," (",names(choiceVec2)[choiceVec2 == input$seriesType1], ")\n")
     ggplot(plotData,aes(x=C20_ActualGrowth, y=C30_ActualGrowth))+
       geom_point(color = '#60636a')+
       geom_smooth(method = "lm", color = 'Orange')+
-      labs(title="Linear Regression\n", size = 15)+
+      labs(title=title_txt, size = 15)+
       theme(panel.background = element_blank(), axis.line = element_line(colour = "grey"), plot.title = element_text(hjust = 0.5))+
       scale_x_continuous(name="Retail Trade", labels = scales::comma)+
       scale_y_continuous(name="Labour Force", labels = scales::comma)+
