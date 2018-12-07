@@ -170,12 +170,13 @@ body <- dashboardBody(
                          )),
                 tabPanel("Charts", value = "charts", 
                          fluidRow(
-                           plotOutput("distPlot", width = "100%" , height = "700px")
+                           column(width = 6,plotOutput("distPlot", width = "100%" , height = "700px")),
+                           column(width = 6,plotOutput("distPlot1", width = "100%" , height = "700px"))
                          ),
                          fluidRow( 
                            #column(width = 4, infoBoxOutput("infoBox1", width = 12)),
-                           #column(width = 4, infoBoxOutput("infoBox3", width = 12)),
-                           column(width = 4, infoBoxOutput("infoBox4", width = 12))
+                           column(width = 6, infoBoxOutput("infoBox4", width = 12)),
+                           column(width = 6, infoBoxOutput("infoBox5", width = 12))
                          ))
               ))
     )
@@ -205,9 +206,10 @@ ui <- dashboardPage(header, sidebar, body)
 
 
 server <- function(input, output, session) {
-  setwd("/Users/anuj/Documents/UTS/Citi")
-  local <- TRUE
+  
+  local <- FALSE
   if(local){
+    setwd("/Users/anuj/Documents/UTS/Citi")
     filep <- "RT_Monthly_Forecast.csv"
   }
   else{
@@ -342,30 +344,30 @@ server <- function(input, output, session) {
   })
   
   output$distPlot <- renderPlot({
-  dt <- reactive_data_forecast()
-  dt <- dt[IND_R == input$industry & TSEST == input$seriesType1]
-  # Enable below code to chech the correlation
-  namesList <-  c("obsTime", "C20","C30","C20_ActualGrowth","C30_ActualGrowth")
-  plotData <- dt[,namesList, with = FALSE]
-  mydata <- na.omit(plotData[,2:3]) # listwise deletion of missing
-  mydata <- scale(mydata)
-  dt_core <- cor(mydata, use = "pairwise.complete.obs")
-  dt_core <- round(dt_core*100,2)
-  #dt_core <- formatC(dt_core, big.mark = ",", format = "f", digits = 2)
-  output$infoBox4 <- renderInfoBox({
-    infoBox("Corr(%)", dt_core , icon = icon("arrow-circle-up"), fill = TRUE, color = "yellow")
-  })
-  # Total 98.86%
-  # 41 98.53%
-  # 42 98.61%
-  # 43 98.74%
-  # 44 97.30%
-  # 45 98.88%
-  # 46 97.64%
-  
-  # Visually fit a linear regression
-  
-  
+    dt <- reactive_data_forecast()
+    dt <- dt[IND_R == input$industry & TSEST == input$seriesType1]
+    # Enable below code to chech the correlation
+    namesList <-  c("obsTime", "C20","C30","C20_ActualGrowth","C30_ActualGrowth")
+    plotData <- dt[,namesList, with = FALSE]
+    mydata <- na.omit(plotData[,2:3]) # listwise deletion of missing
+    mydata <- scale(mydata)
+    dt_core <- cor(mydata, use = "pairwise.complete.obs")
+    dt_core <- round(dt_core*100,2)
+    #dt_core <- formatC(dt_core, big.mark = ",", format = "f", digits = 2)
+    output$infoBox4 <- renderInfoBox({
+      infoBox("Corr(%)", dt_core[1,2] , icon = icon("arrow-circle-up"), fill = TRUE, color = "yellow")
+    })
+    # Total 98.86%
+    # 41 98.53%
+    # 42 98.61%
+    # 43 98.74%
+    # 44 97.30%
+    # 45 98.88%
+    # 46 97.64%
+    
+    # Visually fit a linear regression
+    
+    
     ggplot(plotData,aes(x=C20, y=C30))+
       geom_point(color = '#60636a')+
       geom_smooth(method = "lm", color = 'Orange')+
@@ -378,6 +380,43 @@ server <- function(input, output, session) {
             axis.text.y = element_text(size=8))
   }, res = 150)
   
+  
+  output$distPlot1 <- renderPlot({
+    dt <- reactive_data_forecast()
+    dt <- dt[IND_R == input$industry & TSEST == input$seriesType1]
+    # Enable below code to chech the correlation
+    namesList <-  c("obsTime", "C20","C30","C20_ActualGrowth","C30_ActualGrowth")
+    plotData <- dt[,namesList, with = FALSE]
+    mydata <- na.omit(plotData[,4:5]) # listwise deletion of missing
+    mydata <- scale(mydata)
+    dt_core <- cor(mydata, use = "pairwise.complete.obs")
+    dt_core <- round(dt_core*100,2)
+    #dt_core <- formatC(dt_core, big.mark = ",", format = "f", digits = 2)
+    output$infoBox5 <- renderInfoBox({
+      infoBox("Corr(%)", dt_core[1,2] , icon = icon("arrow-circle-up"), fill = TRUE, color = "yellow")
+    })
+    # Total 98.86%
+    # 41 98.53%
+    # 42 98.61%
+    # 43 98.74%
+    # 44 97.30%
+    # 45 98.88%
+    # 46 97.64%
+    
+    # Visually fit a linear regression
+    
+    
+    ggplot(plotData,aes(x=C20_ActualGrowth, y=C30_ActualGrowth))+
+      geom_point(color = '#60636a')+
+      geom_smooth(method = "lm", color = 'Orange')+
+      labs(title="Linear Regression\n", size = 15)+
+      theme(panel.background = element_blank(), axis.line = element_line(colour = "grey"), plot.title = element_text(hjust = 0.5))+
+      scale_x_continuous(name="Retail Trade", labels = scales::comma)+
+      scale_y_continuous(name="Labour Force", labels = scales::comma)+
+      scale_fill_tableau()+
+      theme(axis.text.x = element_text(size=8),
+            axis.text.y = element_text(size=8))
+  }, res = 150)
   
   
   # output$distPlot <- renderHighchart({
@@ -446,5 +485,5 @@ server <- function(input, output, session) {
   #     hc_add_theme(hc_theme_custom)
   #   })
   
-  }
+}
 shinyApp(ui, server)
